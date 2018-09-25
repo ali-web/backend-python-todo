@@ -44,13 +44,6 @@ def logout():
     return redirect('/')
 
 
-@app.route('/todo/<id>', methods=['GET'])
-def todo(id):
-    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
-    todo = cur.fetchone()
-    return render_template('todo.html', todo=todo)
-
-
 @app.route('/todo', methods=['GET'])
 @app.route('/todo/', methods=['GET'])
 def todos():
@@ -80,10 +73,26 @@ def todos_POST():
     return redirect('/todo')
 
 
-@app.route('/todo/<id>', methods=['POST'])
+@app.route('/todo/<id>', methods=['GET'])
+def todo(id):
+    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
+    todo = cur.fetchone()
+    return render_template('todo.html', todo=todo)
+
+
+@app.route('/todo/<id>/delete', methods=['POST'])
 def todo_delete(id):
     if not session.get('logged_in'):
         return redirect('/login')
     g.db.execute("DELETE FROM todos WHERE id ='%s'" % id)
+    g.db.commit()
+    return redirect('/todo')
+
+@app.route('/todo/<id>/update', methods=['POST'])
+def todo_mark_as_complete(id):
+    if not session.get('logged_in'):
+        return redirect('/login')
+    completed = request.form.get('completed', 0)
+    g.db.execute("UPDATE todos SET completed = %s WHERE id ='%s'" % (int(completed), id))
     g.db.commit()
     return redirect('/todo')

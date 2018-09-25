@@ -15,6 +15,17 @@
                     </a>
                 </td>
                 <td>
+                    <form method="post" action="{{ url_for('todo_mark_as_complete', id=todo.id) }}">
+                        {% if todo.completed %}
+                        <input type="hidden" name="completed" value="0" />
+                        <button type="submit" class="btn btn-xs btn-default">Mark as Incomplete</button>                        
+                        {% else %}
+                        <input type="hidden" name="completed" value="1" />
+                        <button type="submit" class="btn btn-xs btn-default">Mark as Complete</button>                        
+                        {% endif %}
+                    </form>              
+                </td>                
+                <td>
                     <form method="post" action="{{ url_for('todo_delete', id=todo.id) }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
