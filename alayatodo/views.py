@@ -87,8 +87,7 @@ def todo(id):
 @app.route('/todo/<id>/json', methods=['GET'])
 def todo_json(id):
     todo=_todo_get(id)
-    todoJson['id'] = todo.description
-    return jsonify(todoJson)
+    return jsonify(dict(todo))
 
 
 @app.route('/todo/<id>/delete', methods=['POST'])
