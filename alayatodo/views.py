@@ -63,14 +63,16 @@ def todos_POST():
     
     description = request.form.get('description', '')
     if not description:
-        flash('You shoud provide a description')
+        flash_message = 'You shoud provide a description'
     else:
         g.db.execute(
             "INSERT INTO todos (user_id, description) VALUES ('%s', '%s')"
             % (session['user']['id'], description)
         )
         g.db.commit()
-        flash('Successfully added')
+        flash_message = 'Successfully added the new todo item'
+
+    flash(flash_message)
     return redirect('/todo')
 
 
