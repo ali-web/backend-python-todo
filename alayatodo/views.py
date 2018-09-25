@@ -98,6 +98,9 @@ def todo_delete(id):
         return redirect('/login')
     g.db.execute("DELETE FROM todos WHERE id ='%s'" % id)
     g.db.commit()
+
+    flash_message = 'Successfully deleted todo item ' + str(id)
+    flash(flash_message)    
     return redirect('/todo')
 
 @app.route('/todo/<id>/update', methods=['POST'])
