@@ -102,9 +102,13 @@ def todo_delete(id):
 def todo_mark_as_complete(id):
     if not session.get('logged_in'):
         return redirect('/login')
-    completed = request.form.get('completed', 0)
-    g.db.execute("UPDATE todos SET completed = %s WHERE id ='%s'" % (int(completed), id))
+    completed = int(request.form.get('completed'))
+    g.db.execute("UPDATE todos SET completed = %s WHERE id ='%s'" % (completed, id))
     g.db.commit()
+
+    flash_message = 'Successfully marked todo item ' + str(id) + ' as '
+    flash_message += 'Complete' if completed == 1 else 'Incomplete'
+    flash(flash_message)
 
     redirect_to = request.form.get('redirect_to');
     if not redirect_to:
