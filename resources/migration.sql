@@ -1,0 +1,2 @@
+ALTER TABLE todos
+  ADD completed INT(1) DEFAULT (0) NOT NULL;
