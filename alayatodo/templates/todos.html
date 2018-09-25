@@ -6,31 +6,9 @@
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
-                <td>
-                    <a href="{{ url_for('todo', id=todo.id) }}">
-                       {{ todo.description }}
-                    </a>
-                </td>
-                <td>
-                    <form method="post" action="{{ url_for('todo_mark_as_complete', id=todo.id) }}">
-                        {% if todo.completed %}
-                        <input type="hidden" name="completed" value="0" />
-                        <button type="submit" class="btn btn-xs btn-default">Mark as Incomplete</button>                        
-                        {% else %}
-                        <input type="hidden" name="completed" value="1" />
-                        <button type="submit" class="btn btn-xs btn-default">Mark as Complete</button>                        
-                        {% endif %}
-                    </form>              
-                </td>                
-                <td>
-                    <form method="post" action="{{ url_for('todo_delete', id=todo.id) }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
-                </td>
-            </tr>
+            {% with redirect_to='/todo' %}
+            {% include 'partials/todo_item.html' %}
+            {% endwith %}
         {% endfor %}
         <tr>
             <form method="post" action="{{ url_for('todos_POST') }}">

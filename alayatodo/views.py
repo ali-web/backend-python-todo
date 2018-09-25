@@ -5,7 +5,8 @@ from flask import (
     render_template,
     request,
     session,
-    flash
+    flash,
+    jsonify
     )
 
 
@@ -73,11 +74,21 @@ def todos_POST():
     return redirect('/todo')
 
 
-@app.route('/todo/<id>', methods=['GET'])
-def todo(id):
+def _todo_get(id):
     cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
     todo = cur.fetchone()
-    return render_template('todo.html', todo=todo)
+    return todo
+
+@app.route('/todo/<id>', methods=['GET'])
+def todo(id):
+    todo=_todo_get(id)
+    return render_template('todo.html', todo=todo)    
+
+@app.route('/todo/<id>/json', methods=['GET'])
+def todo_json(id):
+    todo=_todo_get(id)
+    todoJson['id'] = todo.description
+    return jsonify(todoJson)
 
 
 @app.route('/todo/<id>/delete', methods=['POST'])
@@ -95,4 +106,8 @@ def todo_mark_as_complete(id):
     completed = request.form.get('completed', 0)
     g.db.execute("UPDATE todos SET completed = %s WHERE id ='%s'" % (int(completed), id))
     g.db.commit()
-    return redirect('/todo')
+
+    redirect_to = request.form.get('redirect_to');
+    if not redirect_to:
+        redirect_to = '/todo'
+    return redirect(redirect_to)
