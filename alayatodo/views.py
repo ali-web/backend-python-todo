@@ -10,6 +10,13 @@ from flask import (
     jsonify
     )
 
+def row2dict(row):
+    d = {}
+    for column in row.__table__.columns:
+        d[column.name] = getattr(row, column.name)
+
+    return d    
+
 
 @app.route('/')
 def home():
@@ -28,11 +35,9 @@ def login_POST():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    sql = "SELECT * FROM users WHERE username = '%s' AND password = '%s'";
-    cur = g.db.execute(sql % (username, password))
-    user = cur.fetchone()
+    user = User.query.filter_by(username=username, password=password).first()
     if user:
-        session['user'] = dict(user)
+        session['user'] = row2dict(user)
         session['logged_in'] = True
         return redirect('/todo')
 
@@ -51,8 +56,6 @@ def logout():
 def todos():
     if not session.get('logged_in'):
         return redirect('/login')
-    # cur = g.db.execute("SELECT * FROM todos")
-    # todos = cur.fetchall()
     todos = Todo.query.all()
     return render_template('todos.html', todos=todos)
 
@@ -88,8 +91,8 @@ def todo(id):
 
 @app.route('/todo/<id>/json', methods=['GET'])
 def todo_json(id):
-    todo=_todo_get(id)
-    return jsonify(dict(todo))
+    todo = Todo.query.get(id)
+    return jsonify(row2dict(todo))
 
 
 @app.route('/todo/<id>/delete', methods=['POST'])
