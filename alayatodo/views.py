@@ -1,4 +1,5 @@
-from alayatodo import app
+from alayatodo import app, db
+from alayatodo.models import Todo, User
 from flask import (
     g,
     redirect,
@@ -50,8 +51,9 @@ def logout():
 def todos():
     if not session.get('logged_in'):
         return redirect('/login')
-    cur = g.db.execute("SELECT * FROM todos")
-    todos = cur.fetchall()
+    # cur = g.db.execute("SELECT * FROM todos")
+    # todos = cur.fetchall()
+    todos = Todo.query.all()
     return render_template('todos.html', todos=todos)
 
 
@@ -65,11 +67,9 @@ def todos_POST():
     if not description:
         flash_message = 'You shoud provide a description'
     else:
-        g.db.execute(
-            "INSERT INTO todos (user_id, description) VALUES ('%s', '%s')"
-            % (session['user']['id'], description)
-        )
-        g.db.commit()
+        todo = Todo(session['user']['id'], description, 0)
+        db.session.add(todo)
+        db.session.commit()
         flash_message = 'Successfully added the new todo item'
 
     flash(flash_message)
@@ -77,13 +77,13 @@ def todos_POST():
 
 
 def _todo_get(id):
-    cur = g.db.execute("SELECT * FROM todos WHERE id ='%s'" % id)
+    cur = db.engine.execute("SELECT * FROM todos WHERE id ='%s'" % id)
     todo = cur.fetchone()
     return todo
 
 @app.route('/todo/<id>', methods=['GET'])
 def todo(id):
-    todo=_todo_get(id)
+    todo = Todo.query.get(id)
     return render_template('todo.html', todo=todo)    
 
 @app.route('/todo/<id>/json', methods=['GET'])
@@ -96,8 +96,9 @@ def todo_json(id):
 def todo_delete(id):
     if not session.get('logged_in'):
         return redirect('/login')
-    g.db.execute("DELETE FROM todos WHERE id ='%s'" % id)
-    g.db.commit()
+    todo = Todo.query.get(id)
+    db.session.delete(todo)
+    db.session.commit()
 
     flash_message = 'Successfully deleted todo item ' + str(id)
     flash(flash_message)    
@@ -108,8 +109,9 @@ def todo_mark_as_complete(id):
     if not session.get('logged_in'):
         return redirect('/login')
     completed = int(request.form.get('completed'))
-    g.db.execute("UPDATE todos SET completed = %s WHERE id ='%s'" % (completed, id))
-    g.db.commit()
+    todo = Todo.query.get(id)    
+    todo.completed = completed
+    db.session.commit()
 
     flash_message = 'Successfully marked todo item ' + str(id) + ' as '
     flash_message += 'Complete' if completed == 1 else 'Incomplete'
