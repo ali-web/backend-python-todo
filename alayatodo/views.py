@@ -17,6 +17,10 @@ def row2dict(row):
 
     return d    
 
+def logged_in_user_id():
+    user_id = session.get('user_id', None)
+    return user_id
+
 
 @app.route('/')
 def home():
@@ -27,6 +31,8 @@ def home():
 
 @app.route('/login', methods=['GET'])
 def login():
+    if logged_in_user_id():
+        return redirect('/')    
     return render_template('login.html')
 
 
@@ -37,8 +43,9 @@ def login_POST():
 
     user = User.query.filter_by(username=username, password=password).first()
     if user:
-        session['user'] = row2dict(user)
-        session['logged_in'] = True
+        dict_user = row2dict(user)
+        session['user_id'] = dict_user['id']
+        session['username'] = dict_user['username']
         return redirect('/todo')
 
     return redirect('/login')
@@ -46,31 +53,33 @@ def login_POST():
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
-    session.pop('user', None)
+    session.pop('user_id', None)
+    session.pop('username', None)
     return redirect('/')
 
 
 @app.route('/todo', methods=['GET'])
 @app.route('/todo/', methods=['GET'])
 def todos():
-    if not session.get('logged_in'):
+    user_id = logged_in_user_id()
+    if not user_id:
         return redirect('/login')
-    todos = Todo.query.all()
+    todos = Todo.query.filter_by(user_id=user_id)
     return render_template('todos.html', todos=todos)
 
 
 @app.route('/todo', methods=['POST'])
 @app.route('/todo/', methods=['POST'])
 def todos_POST():
-    if not session.get('logged_in'):
+    user_id = logged_in_user_id()
+    if not user_id:
         return redirect('/login')
     
     description = request.form.get('description', '')
     if not description:
         flash_message = 'You shoud provide a description'
     else:
-        todo = Todo(session['user']['id'], description, 0)
+        todo = Todo(user_id, description, 0)
         db.session.add(todo)
         db.session.commit()
         flash_message = 'Successfully added the new todo item'
@@ -79,27 +88,30 @@ def todos_POST():
     return redirect('/todo')
 
 
-def _todo_get(id):
-    cur = db.engine.execute("SELECT * FROM todos WHERE id ='%s'" % id)
-    todo = cur.fetchone()
+def _todo_item(id):
+    todo = Todo.query.filter_by(id=id, user_id=logged_in_user_id()).first_or_404()
     return todo
 
 @app.route('/todo/<id>', methods=['GET'])
 def todo(id):
-    todo = Todo.query.get(id)
-    return render_template('todo.html', todo=todo)    
+    if not logged_in_user_id():
+        return redirect('/login')    
+    todo = _todo_item(id)
+    return render_template('todo.html', todo=todo)
 
 @app.route('/todo/<id>/json', methods=['GET'])
 def todo_json(id):
-    todo = Todo.query.get(id)
+    if not logged_in_user_id():
+        return redirect('/login')    
+    todo = _todo_item(id)
     return jsonify(row2dict(todo))
 
 
 @app.route('/todo/<id>/delete', methods=['POST'])
 def todo_delete(id):
-    if not session.get('logged_in'):
+    if not logged_in_user_id():
         return redirect('/login')
-    todo = Todo.query.get(id)
+    todo = _todo_item(id)
     db.session.delete(todo)
     db.session.commit()
 
@@ -109,10 +121,10 @@ def todo_delete(id):
 
 @app.route('/todo/<id>/update', methods=['POST'])
 def todo_mark_as_complete(id):
-    if not session.get('logged_in'):
+    if not logged_in_user_id():
         return redirect('/login')
     completed = int(request.form.get('completed'))
-    todo = Todo.query.get(id)    
+    todo = _todo_item(id)   
     todo.completed = completed
     db.session.commit()
 
