@@ -5,7 +5,7 @@
     <h1>Todo List:</h1>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
-        {% for todo in todos %}
+        {% for todo in todos.items %}
             {% with redirect_to='/todo' %}
             {% include 'partials/todo_item.html' %}
             {% endwith %}
@@ -21,5 +21,18 @@
             </form>
         </tr>
     </table>
+
+    <div class="pagination-bar">
+    {% if todos.has_prev %}
+        <a href="{{ url_for('todos', page=todos.prev_num) }}">&lt;&lt; prev</a>
+    {% else %}
+        &lt;&lt; prev
+    {% endif %} | 
+    {% if todos.has_next %}
+        <a href="{{ url_for('todos', page=todos.next_num) }}">next &gt;&gt;</a>
+    {% else %}
+        next &gt;&gt;
+    {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -64,7 +64,15 @@ def todos():
     user_id = logged_in_user_id()
     if not user_id:
         return redirect('/login')
-    todos = Todo.query.filter_by(user_id=user_id)
+
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+
+    page_size = 10
+
+    todos = Todo.query.filter_by(user_id=user_id).paginate(page, page_size, False)
     return render_template('todos.html', todos=todos)
 
 
