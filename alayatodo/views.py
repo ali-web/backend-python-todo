@@ -29,14 +29,14 @@ def home():
         return render_template('index.html', readme=readme)
 
 
-@app.route('/login', methods=['GET'])
+@app.route('/login', methods=['GET'], strict_slashes=False)
 def login():
     if logged_in_user_id():
         return redirect('/')    
     return render_template('login.html')
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST'], strict_slashes=False)
 def login_POST():
     username = request.form.get('username')
     password = request.form.get('password')
@@ -51,15 +51,14 @@ def login_POST():
     return redirect('/login')
 
 
-@app.route('/logout')
+@app.route('/logout', strict_slashes=False)
 def logout():
     session.pop('user_id', None)
     session.pop('username', None)
     return redirect('/')
 
 
-@app.route('/todo', methods=['GET'])
-@app.route('/todo/', methods=['GET'])
+@app.route('/todo/', methods=['GET'], strict_slashes=False)
 def todos():
     user_id = logged_in_user_id()
     if not user_id:
@@ -76,8 +75,7 @@ def todos():
     return render_template('todos.html', todos=todos)
 
 
-@app.route('/todo', methods=['POST'])
-@app.route('/todo/', methods=['POST'])
+@app.route('/todo/', methods=['POST'], strict_slashes=False)
 def todos_POST():
     user_id = logged_in_user_id()
     if not user_id:
@@ -100,14 +98,14 @@ def _todo_item(id):
     todo = Todo.query.filter_by(id=id, user_id=logged_in_user_id()).first_or_404()
     return todo
 
-@app.route('/todo/<id>', methods=['GET'])
+@app.route('/todo/<id>', methods=['GET'], strict_slashes=False)
 def todo(id):
     if not logged_in_user_id():
         return redirect('/login')    
     todo = _todo_item(id)
     return render_template('todo.html', todo=todo)
 
-@app.route('/todo/<id>/json', methods=['GET'])
+@app.route('/todo/<id>/json', methods=['GET'], strict_slashes=False)
 def todo_json(id):
     if not logged_in_user_id():
         return redirect('/login')    
@@ -115,7 +113,7 @@ def todo_json(id):
     return jsonify(row2dict(todo))
 
 
-@app.route('/todo/<id>/delete', methods=['POST'])
+@app.route('/todo/<id>/delete', methods=['POST'], strict_slashes=False)
 def todo_delete(id):
     if not logged_in_user_id():
         return redirect('/login')
@@ -127,7 +125,7 @@ def todo_delete(id):
     flash(flash_message)    
     return redirect('/todo')
 
-@app.route('/todo/<id>/update', methods=['POST'])
+@app.route('/todo/<id>/update', methods=['POST'], strict_slashes=False)
 def todo_mark_as_complete(id):
     if not logged_in_user_id():
         return redirect('/login')
