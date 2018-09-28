@@ -41,14 +41,19 @@ def login_POST():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    user = User.query.filter_by(username=username, password=password).first()
-    if user:
-        dict_user = row2dict(user)
-        session['user_id'] = dict_user['id']
-        session['username'] = dict_user['username']
-        return redirect('/todo')
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        flash('username not found')
+        return redirect('/login')
 
-    return redirect('/login')
+    if not user.check_password(password):
+        flash('username and password do not match')
+        return redirect('/login')
+        
+    dict_user = row2dict(user)
+    session['user_id'] = dict_user['id']
+    session['username'] = dict_user['username']
+    return redirect('/todo')
 
 
 @app.route('/logout', strict_slashes=False)
